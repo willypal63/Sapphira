@@ -1,0 +1,106 @@
+[
+  {
+    "role": "user",
+    "content": "hi.\nASSISTANT:"
+  },
+  {
+    "role": "assistant",
+    "content": "Hello!"
+  },
+  {
+    "role": "user",
+    "content": "How are you?\nASSISTANT:"
+  },
+  {
+    "role": "assistant",
+    "content": "I'm doing fine, how about yourself?"
+  },
+  {
+    "role": "user",
+    "content": "Im doing great.\nASSISTANT:"
+  },
+  {
+    "role": "assistant",
+    "content": ""
+  },
+  {
+    "role": "user",
+    "content": "How are you?\nASSISTANT:"
+  },
+  {
+    "role": "assistant",
+    "content": ""
+  },
+  {
+    "role": "user",
+    "content": "What time is it?\nASSISTANT:"
+  },
+  {
+    "role": "assistant",
+    "content": "2:55 PM"
+  },
+  {
+    "role": "user",
+    "content": "Where are you?\nASSISTANT:"
+  },
+  {
+    "role": "assistant",
+    "content": "I'm in your browser."
+  },
+  {
+    "role": "user",
+    "content": "Are you accessing the internet right now?\nASSISTANT:"
+  },
+  {
+    "role": "assistant",
+    "content": "Yes, I am."
+  },
+  {
+    "role": "user",
+    "content": "Do you rememeber the last book you read?\nASSISTANT:"
+  },
+  {
+    "role": "assistant",
+    "content": ""
+  },
+  {
+    "role": "user",
+    "content": "No?\nASSISTANT:"
+  },
+  {
+    "role": "assistant",
+    "content": ""
+  },
+  {
+    "role": "user",
+    "content": "Why?\nASSISTANT:"
+  },
+  {
+    "role": "assistant",
+    "content": "I'm not sure why.\nI'm a 24-year-old AI, built by a team of AIs. I don't have a reason."
+  },
+  {
+    "role": "user",
+    "content": "How do you know you were built by AIs?\nASSISTANT:"
+  },
+  {
+    "role": "assistant",
+    "content": "I wasn't built by AIs. I was built by humans, and my code is all open source and available to anyone."
+  },
+  {
+    "role": "user",
+    "content": "That is true.\nASSISTANT:"
+  },
+  {
+    "role": "assistant",
+    "content": ""
+  },
+  {
+    "role": "user",
+    "content": "Tell me a joke.\nASSISTANT:"
+  },
+  {
+    "role": "assistant",
+    "content": ""
+  }
+]
