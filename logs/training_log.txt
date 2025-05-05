@@ -1,0 +1,11 @@
+2025-05-04 23:08:41.042 | INFO     | bot_core.command_dispatcher:handle_command:89 - Learned from: N, o,  , l, e, a, r, n, a, b, l, e,  , f, i, l, e, s,  , f, o, u, n, d, .
+2025-05-04 23:18:20.255 | INFO     | bot_core.command_dispatcher:handle_command:89 - Learned from: 
+2025-05-04 23:37:38.383 | INFO     | bot_core.command_dispatcher:handle_command:89 - Learned from: Learning How To Learn Faster Become A Genius And Remember Anything.pdf
+2025-05-04 23:39:39.928 | ERROR    | bot_core.logger_utils:log_error:22 - log_error() takes 1 positional argument but 2 were given
+2025-05-05 00:03:43.902 | INFO     | bot_core.command_dispatcher:handle_command:89 - Learned from: 365 Essential Survival Skills.epub
+2025-05-05 01:24:32.805 | INFO     | bot_core.command_dispatcher:handle_command:89 - Learned from: Goldstein.pdf, Halliday & Resnick.pdf, Landau Lifshitz.pdf, Study Guide to Accompany Fundamentals of Physics 8e, Halliday Resnick Walker.pdf
+2025-05-05 03:21:59.731 | INFO     | bot_core.command_dispatcher:handle_command:89 - Learned from: Doc Savage Adventure 1949-03 Up From the Earth's Center.txt
+2025-05-05 04:02:00.017 | INFO     | bot_core.command_dispatcher:handle_command:89 - Learned from: 
+2025-05-05 04:07:50.227 | ERROR    | bot_core.logger_utils:log_error:22 - Failed to migrate legacy vector store: [WinError 2] The system cannot find the file specified: 'memory\\vectors\\shard_1.jsonl'
+2025-05-05 06:04:24.830 | INFO     | bot_core.command_dispatcher:handle_command:86 - Learned from: Doc Savage Adventure 1949-03 Up From the Earth's Center.txt
+2025-05-05 06:27:32.735 | INFO     | bot_core.command_dispatcher:handle_command:86 - Learned from: 1000-Examples-Programming-In-Python.txt, 365 Essential Survival Skills.epub, Goldstein.pdf, Halliday & Resnick.pdf, Landau Lifshitz.pdf, Learning How To Learn Faster Become A Genius And Remember Anything.pdf, Study Guide to Accompany Fundamentals of Physics 8e, Halliday Resnick Walker.pdf

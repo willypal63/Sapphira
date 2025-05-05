@@ -9,27 +9,36 @@ LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 allowed_exts = [".txt", ".md", ".html", ".py", ".json", ".pdf"]
 
-HELP_TEXT = """
-/github import <repo_url> – Clone and learn from a GitHub repo
-Available Commands:
-/memory list      – List all saved memory export files
-/forget           – Clear all saved conversation history
-/remember on      – Enable memory (default ON)
-/remember off     – Disable memory temporarily
-/memory status    – Show whether memory is ON or OFF
-/memory export    – Save current memory to a timestamped file
-/memory open      – Open most recent memory export file
-/offline on       – Activate offline mode (blocks online logic)
-/offline off      – Deactivate offline mode
-/knowledge status – Show which knowledge files are loaded
-/ocr test         – Run built-in OCR check
-/ocr scan <file>  – OCR extract from PDF/image in knowledge/
-/ocr extract all  – OCR all PDFs/images and save .ocr.txt files
-/learn ocr        – Learn from and delete all .ocr.txt files in knowledge/
-/learn all        – Automatically learn from all supported files in knowledge/
-/error log        – Show recent error log entries
-/error clear      – Clear all error log contents
-/config show      – Show current config settings
-/config reload    – Reload config.json values
-/help             – Show this help message
-"""
+# Slash-command help text
+HELP_TEXT = '''
+Memory Management
+/forget              → Clear all conversation memory
+/remember on|off     → Toggle memory status (always ON)
+/memory status       → Show memory stats
+/memory export       → Save memory to timestamped file
+/memory list         → List exported memory files
+/memory open         → Open the latest memory export
+
+Learning & Knowledge
+/learn all           → Ingest all supported files from knowledge folder
+/learn summary       → Show count of chunks, shards, vectors
+/vector status       → Show vector store disk usage and index size
+
+OCR Tools
+/ocr test            → Run built-in OCR test
+/ocr scan <file>     → OCR scan a specific image or PDF
+/ocr extract all     → Extract all OCR-compatible files
+
+System + Config
+/config show         → Display current loaded config.json
+/config reload       → Reload settings from config file
+/offline             → Force disconnect from internet (manual offline mode)
+/connect             → Reconnect to internet and enable online mode
+/net status          → Show current online/offline and connection status
+/knowledge status    → Show list of loaded knowledge files
+
+Support
+/help                → Show this help menu
+'''
+
+

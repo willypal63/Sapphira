@@ -1,1 +1,2 @@
 2025-05-04 20:35:35.670 | ERROR    | bot_core.logger_utils:log_error:22 - Error during generation: 'text'
+2025-05-04 23:39:39.928 | ERROR    | bot_core.logger_utils:log_error:22 - log_error() takes 1 positional argument but 2 were given

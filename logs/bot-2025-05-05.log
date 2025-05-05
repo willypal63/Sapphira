@@ -1,0 +1,1 @@
+2025-05-05 04:07:50.227 | ERROR    | bot_core.logger_utils:log_error:22 - Failed to migrate legacy vector store: [WinError 2] The system cannot find the file specified: 'memory\\vectors\\shard_1.jsonl'
