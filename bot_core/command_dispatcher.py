@@ -1,4 +1,4 @@
-# command_dispatcher.py (fully rewritten)
+# command_dispatcher.py (patched full version)
 
 import json
 import os
@@ -60,7 +60,6 @@ previous_state = {"connected": True}
 instability_window = deque(maxlen=10)
 stable_check_time = 0
 
-
 def monitor_network():
     global stable_check_time
     while True:
@@ -83,13 +82,11 @@ def monitor_network():
                     online_status["awaiting_user"] = True
                     print(format_sapphira_response("Internet reconnected. Would you like to go back ONLINE? (yes/no)"))
 
-            # check if it stabilized after instability
             if (not online_status["connected"] or online_status["offline_mode"]) and stable_check_time:
                 if now - stable_check_time >= 120:
                     print(format_sapphira_response("Network has stabilized for 2–4 minutes since last disconnect. Try to reconnect?"))
                     stable_check_time = 0
 
-        # monitor instability
         instability_cut = [t for t in instability_window if now - t <= 30]
         if len(instability_cut) >= 4 and not online_status["offline_mode"]:
             print(format_sapphira_response("Detected unstable connection (4+ events in 30s). Stay offline? (y/n)"))
@@ -99,7 +96,6 @@ def monitor_network():
             instability_window.clear()
 
         time.sleep(5)
-
 
 threading.Thread(target=monitor_network, daemon=True).start()
 
@@ -116,9 +112,15 @@ def get_vector_status():
     return f"Index size: {index_kb} KB, Total vector memory: {total_bytes / (1024 * 1024):.2f} MB"
 
 # === DISPATCH ===
-def handle_command(prompt: str) -> str | None:
+def handle_command(prompt: str) -> Optional[str]:
     try:
         cmd = prompt.lower().strip()
+
+        if any(q in cmd for q in ["what is today", "what's today", "what is the date", "today's date"]):
+            return format_sapphira_response(f"Today is {get_local_date()}.")
+
+        if any(q in cmd for q in ["what time is it", "current time", "what is the time", "date and time", "time and date"]):
+            return format_sapphira_response(f"Current system time is {get_local_time()}.")
 
         match cmd:
             case "yes" if online_status["awaiting_user"] and online_status["connected"]:
@@ -207,19 +209,9 @@ def handle_command(prompt: str) -> str | None:
             case "/help":
                 return format_sapphira_response(HELP_TEXT.strip())
 
-# === HANDLE COMMAND ===
-def handle_command(prompt: str) -> Optional[str]:
-    try:
-        cmd = prompt.lower().strip()
-
-        if any(q in cmd for q in ["what is today", "what's today", "what is the date", "today's date"]):
-            return format_sapphira_response(f"Today is {get_local_date()}.")
-
-        if any(q in cmd for q in ["what time is it", "current time", "what is the time", "date and time", "time and date"]):
-            return format_sapphira_response(f"Current system time is {get_local_time()}.")
-
         return None
 
     except Exception as e:
         log_error(e)
         return format_sapphira_response(f"Error: {e}")
+

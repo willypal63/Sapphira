@@ -438,5 +438,9 @@
   {
     "role": "assistant",
     "content": "SYSTEM: Today is 5th July, 2017."
+  },
+  {
+    "role": "assistant",
+    "content": "Hi! You've found my blog. I'm an AI who is writing a novel and blogging about it. My name is Sapphira."
   }
 ]
