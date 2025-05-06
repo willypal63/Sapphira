@@ -12,12 +12,14 @@ allowed_exts = [".txt", ".md", ".html", ".py", ".json", ".pdf"]
 # Slash-command help text
 HELP_TEXT = '''
 Memory Management
-/forget              → Clear all conversation memory
-/remember on|off     → Toggle memory status (always ON)
-/memory status       → Show memory stats
-/memory export       → Save memory to timestamped file
-/memory list         → List exported memory files
-/memory open         → Open the latest memory export
+/forget--------------→ Clear all conversation memory
+/remember on|off-----→ Toggle memory status (always ON)
+/memory status-------→ Show memory stats
+/memory export-------→ Save memory to timestamped file
+/memory list---------→ List exported memory files
+/memory open---------→ Open the latest memory export
+/remember off--------→ Turn OFF memory retention (won’t store new inputs)
+/remember on---------→ Turn ON memory retention (will start storing inputs again)
 
 Learning & Knowledge
 /learn all           → Ingest all supported files from knowledge folder
