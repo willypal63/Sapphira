@@ -1,104 +1,118 @@
-"""
-This module provides code generation and patching utilities for the assistant, powered by llama-cpp-python.
-Make sure you have your GGUF model file locally and set the LLM_MODEL_PATH environment variable if needed.
-Includes robust error handling and fallback logic for offline inference.
-"""
-import os
-from pathlib import Path
+# bot_core/code_generation.py
+
+import pathlib
 import logging
-from llama_cpp import Llama, LlamaError
+import openai
+from typing import Optional
 
-from bot_core.formatting import format_user_input
-from bot_core.logger_utils import log_error
-
-# === Configuration ===
-MODEL_PATH = Path(os.getenv("LLM_MODEL_PATH", "models/CodeLLaMA-13B-Q4_K_M.gguf"))
-LLM_CTX = int(os.getenv("LLM_CTX", "2048"))
-FALLBACK_MODEL = Path(os.getenv("FALLBACK_LLM_MODEL", "models/CodeLLaMA-7B-Q4_K_M.gguf"))
-
-# Configure local logger
+# Set up logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-# === LLM Client Setup ===
-llm = None
-
-try:
-    if not MODEL_PATH.is_file():
-        raise FileNotFoundError(f"Model file not found at {MODEL_PATH}")
-    logger.info(f"Loading model from {MODEL_PATH}")
-    llm = Llama(model_path=str(MODEL_PATH), n_ctx=LLM_CTX, verbose=False)
-except Exception as init_err:
-    log_error(init_err)
-    # Attempt fallback
-    try:
-        if FALLBACK_MODEL.is_file():
-            logger.warning(f"Primary model load failed, loading fallback model {FALLBACK_MODEL}")
-            llm = Llama(model_path=str(FALLBACK_MODEL), n_ctx=LLM_CTX, verbose=False)
-        else:
-            raise FileNotFoundError(
-                f"Fallback model not found at {FALLBACK_MODEL}"
-            )
-    except Exception as fallback_err:
-        log_error(fallback_err)
-        llm = None
-        logger.error("No usable LLM model available. Code generation will be disabled.")
 
 
-def ai_generate(prompt: str, max_tokens: int = 1024, temperature: float = 0.2) -> str:
+def generate_file(template: str,
+                  destination: pathlib.Path,
+                  **kwargs) -> Optional[pathlib.Path]:
     """
-    Core wrapper to call the LLM and return the generated text.
-    Returns an error message if inference fails or no model is loaded.
+    Generate a new file based on a template string or identifier.
+    This function uses a local import of the command dispatcher to avoid circular dependencies.
+
+    Args:
+        template (str): The template content or template ID.
+        destination (pathlib.Path): Where to write the generated file.
+        **kwargs: Additional parameters for generation.
+
+    Returns:
+        pathlib.Path if successful, None otherwise.
     """
-    if llm is None:
-        err_msg = "Error: No LLM model loaded for inference."
-        logger.error(err_msg)
-        return err_msg
+    # Local import to break circular import with command_dispatcher
+    from bot_core.command_dispatcher import dispatcher
 
     try:
-        response = llm(
-            prompt,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            stop=["\n```"],
-        )
-        choice = response.get("choices", [{}])[0]
-        text = choice.get("text") or choice.get("message", {}).get("content")
-        return text or ""
-    except LlamaError as e:
-        log_error(e)
-        return f"LLM inference error: {e}"
+        # Dispatch the template generation
+        content = dispatcher.dispatch(template, **kwargs)
+        destination.write_text(content, encoding="utf-8")
+        logger.info(f"Generated file at {destination}")
+        return destination
     except Exception as e:
-        log_error(e)
-        return f"Unexpected error during inference: {e}"
+        logger.error(f"File generation failed for {destination}: {e}")
+        return None
 
 
-def generate_file(description: str, language: str) -> str:
+def generate_patch(file_path: pathlib.Path,
+                   diff_prompt: str,
+                   model: str = "gpt-4",
+                   temperature: float = 0.0,
+                   max_tokens: int = 2048) -> Optional[str]:
     """
-    Generate a full source file in the specified language based on the provided description.
-    Returns the code as a string or an error message.
+    Generate a unified diff patch for the given file based on the diff_prompt.
+    Returns the patch text, or None if generation fails.
+
+    Args:
+        file_path (pathlib.Path): Path to the original file to patch.
+        diff_prompt (str): Instructions describing desired changes.
+        model (str): OpenAI model to use.
+        temperature (float): Sampling temperature.
+        max_tokens (int): Maximum tokens to generate.
     """
-    prompt = format_user_input(
-        f"Generate a complete {language} file that does the following: {description}\n"
-        "Include necessary imports or boilerplate, and output the code within code fences."
+    try:
+        original = file_path.read_text(encoding="utf-8")
+    except Exception as e:
+        logger.error(f"Failed to read file {file_path}: {e}")
+        return None
+
+    system_msg = (
+        "You are a helpful assistant specialized in generating unified diff patches."
     )
-    result = ai_generate(prompt, max_tokens=2048)
-    if result.startswith("Error"):
-        return result
-    return result
-
-
-def generate_patch(original_code: str, patch_description: str) -> str:
-    """
-    Produce a patched version of original_code applying patch_description.
-    Returns the patched code as a string or an error message.
-    """
-    prompt = format_user_input(
-        f"Here is the original code:\n```\n{original_code}\n```\n"
-        f"Please apply the following changes: {patch_description}\n"
-        "Output only the full updated file inside code fences."
+    user_msg = (
+        f"Here is the original code from `{file_path.name}`:\n```{original}```\n"
+        f"---\n{diff_prompt}\n"
+        "Please respond with a unified diff patch only."
     )
-    result = ai_generate(prompt, max_tokens=2048)
-    if result.startswith("Error"):
-        return result
-    return result
+
+    try:
+        response = openai.ChatCompletion.create(
+            model=model,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            messages=[
+                {"role": "system", "content": system_msg},
+                {"role": "user",   "content": user_msg},
+            ],
+        )
+        patch = response.choices[0].message.content.strip()
+        return patch
+    except Exception as e:
+        logger.error(f"OpenAI API call failed: {e}")
+        return None
+
+
+if __name__ == "__main__":
+    import argparse
+    from pathlib import Path
+
+    parser = argparse.ArgumentParser(
+        description="Generate files or unified diff patches using OpenAI GPT models."
+    )
+    parser.add_argument("--file", type=pathlib.Path,
+                        help="Target file path for patch generation.")
+    parser.add_argument("--prompt", type=str,
+                        help="Diff prompt describing desired changes.")
+    parser.add_argument("--template", type=str,
+                        help="Template string or identifier for file generation.")
+    parser.add_argument("--dest", type=pathlib.Path,
+                        help="Destination path for generated file.")
+    args = parser.parse_args()
+
+    if args.template and args.dest:
+        result = generate_file(args.template, args.dest)
+        if not result:
+            logger.error("File generation failed.")
+    elif args.file and args.prompt:
+        result = generate_patch(args.file, args.prompt)
+        if result:
+            print(result)
+        else:
+            logger.error("Patch generation failed.")
+    else:
+        parser.print_help()

@@ -1,3 +1,5 @@
+# bot_core/command_dispatcher.py
+
 import json
 import os
 import socket
@@ -62,7 +64,7 @@ with CONFIG_PATH.open("r", encoding="utf-8") as f:
 # Network status tracking
 online_status = {"connected": True, "offline_mode": config.get("offline", False), "awaiting_user": False}
 previous_state = {"connected": True}
-instability_window = deque(maxlen=10)
+instability_window = deque(maxlen=100)  # increased window to reduce false positives
 stable_check_time = 0
 
 # === NETWORK MONITOR ===
@@ -74,7 +76,6 @@ def has_internet_connection(timeout=3) -> bool:
     except OSError:
         return False
 
-threading.Thread(target=monitor_network, daemon=True).start()
 
 def monitor_network():
     global stable_check_time
@@ -96,13 +97,18 @@ def monitor_network():
                 print(format_sapphira_response("Network has stabilized. Try to reconnect? (yes/no)"))
                 stable_check_time = 0
         instability_window.append(now)
-        recent = [t for t in instability_window if now - t <= 30]
-        if len(recent) >= 4 and not online_status.get("offline_mode"):
+        recent = [t for t in instability_window if now - t <= 60]  # use 60s window
+        # trigger offline prompt only after 20 unstable checks
+        if len(recent) >= 20 and not online_status.get("offline_mode"):
             print(format_sapphira_response("Detected unstable connection. Enter offline mode? (y/n)"))
             online_status.update({"offline_mode": True, "awaiting_user": True})
             instability_window.clear()
             stable_check_time = now
         time.sleep(5)
+
+# Start network monitoring thread
+target_thread = threading.Thread(target=monitor_network, daemon=True)
+target_thread.start()
 
 # === VECTOR UTILITIES ===
 
@@ -163,7 +169,7 @@ def handle_command(prompt: str) -> Optional[str]:
                 online_status.update({"offline_mode": False, "awaiting_user": False})
                 return format_sapphira_response("Back ONLINE. Internet features re-enabled.")
             case "no" if online_status["awaiting_user"]:
-                online_status.update({"offline_mode": True, "awaiting_user": False})
+                online_status.update({"offline_mode": True, "connected": False, "awaiting_user": False})
                 return format_sapphira_response("Remaining OFFLINE. You can type /connect to reconnect manually.")
             case "/connect":
                 if has_internet_connection():

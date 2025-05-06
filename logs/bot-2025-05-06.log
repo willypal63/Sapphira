@@ -1,0 +1,1 @@
+2025-05-06 00:58:08.723 | ERROR    | bot_core.logger_utils:log_error:22 - cannot import name 'dispatcher' from 'bot_core.command_dispatcher' (D:\offline_codebot_prototype\bot_core\command_dispatcher.py)

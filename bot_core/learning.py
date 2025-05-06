@@ -1,116 +1,70 @@
 # bot_core/learning.py
 
-import json
-import fitz  # PyMuPDF
+import logging
 from pathlib import Path
-from uuid import uuid4
-from bs4 import BeautifulSoup
-from ebooklib import epub
-from tqdm import tqdm
-from bot_core.paths import LEARNING_DATA_PATH
+from typing import List
 
-VECTORS_DIR = Path("memory/vectors")
-VECTORS_DIR.mkdir(parents=True, exist_ok=True)
-MAX_SHARD_SIZE = 75 * 1024 * 1024  # 75 MB
+from bot_core.constants_config import IMPORT_DIR
+from bot_core.file_ingestor import ingest_directory, discover_files
 
-SUPPORTED_EXTS = [".txt", ".md", ".html", ".pdf", ".epub"]
-IMAGE_EXTS = [".png", ".jpg", ".jpeg", ".bmp", ".gif", ".tiff"]
-
-class ShardWriter:
-    def __init__(self):
-        self.current_shard = []
-        self.current_size = 0
-        self.shard_index = 0
-
-    def _current_shard_path(self):
-        return VECTORS_DIR / f"shard_{self.shard_index}.jsonl"
-
-    def write(self, chunk_text):
-        chunk_id = str(uuid4())
-        record = {"id": chunk_id, "text": chunk_text}
-        record_json = json.dumps(record) + "\n"
-        encoded = record_json.encode("utf-8")
-        size = len(encoded)
-
-        if self.current_size + size > MAX_SHARD_SIZE:
-            self._flush()
-            self.shard_index += 1
-
-        self.current_shard.append(encoded)
-        self.current_size += size
-
-    def _flush(self):
-        if not self.current_shard:
-            return
-        path = self._current_shard_path()
-        with open(path, "wb") as f:
-            f.writelines(self.current_shard)
-        self.current_shard = []
-        self.current_size = 0
-
-    def close(self):
-        self._flush()
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
-def chunk_text(text: str, max_len: int = 800) -> list[str]:
-    lines = text.splitlines()
-    chunks: list[str] = []
-    buffer = ""
-    for line in lines:
-        if len(buffer) + len(line) + 1 > max_len:
-            chunks.append(buffer.strip())
-            buffer = line
-        else:
-            buffer += "\n" + line
-    if buffer.strip():
-        chunks.append(buffer.strip())
-    return chunks
+def learn_text(text: str) -> None:
+    """
+    Process raw text content for learning purposes.
+
+    Args:
+        text (str): The text content to learn from.
+    """
+    # TODO: implement embedding generation and storage
+    length = len(text)
+    logger.info(f"learn_text: received text of length {length}")
 
 
-def extract_pdf_text(file_path: Path) -> str:
-    doc = fitz.open(str(file_path))
-    return "\n".join([page.get_text() for page in doc])
+def learn_table(table_text: str) -> None:
+    """
+    Process tabular content for learning purposes.
+
+    Args:
+        table_text (str): Line-delimited rows with columns separated by '|'.
+    """
+    # TODO: implement row-wise embedding or structured storage
+    row_count = table_text.count("\n") + 1 if table_text else 0
+    logger.info(f"learn_table: received table with approximately {row_count} rows")
 
 
-def extract_epub_text(file_path: Path) -> str:
-    book = epub.read_epub(str(file_path))
-    texts = []
-    for item in book.get_items():
-        if item.get_type() == epub.EpubHtml:
-            soup = BeautifulSoup(item.content, "html.parser")
-            texts.append(soup.get_text())
-    return "\n".join(texts)
+def learn_all_supported_files(root: Path = Path(IMPORT_DIR)) -> List[Path]:
+    """
+    Discover and ingest all supported files under the given directory.
+
+    Args:
+        root (Path): Directory to scan for files (defaults to IMPORT_DIR).
+
+    Returns:
+        List[Path]: Paths of files discovered and ingested.
+    """
+    logger.info(f"Starting learning pipeline on directory: {root}")
+    files = discover_files(root)
+    if not files:
+        logger.warning(f"No files found in {root} matching allowed extensions.")
+    else:
+        logger.info(f"Discovered {len(files)} files to learn from.")
+    ingest_directory(root)
+    return files
 
 
-def learn_all_supported_files() -> list[str]:
-    writer = ShardWriter()
-    learned = []
-    files = list(Path(LEARNING_DATA_PATH).iterdir())
-    for file in tqdm(files, desc="Learning files", unit="file", ncols=80):
-        ext = file.suffix.lower()
-        try:
-            if ext in IMAGE_EXTS:
-                from bot_core.ocr_tools import ocr_scan_file
-                text = ocr_scan_file(str(file)) or ""
-            elif ext in [".txt", ".md", ".html"]:
-                text = file.read_text(encoding="utf-8", errors="ignore")
-            elif ext == ".pdf":
-                text = extract_pdf_text(file)
-            elif ext == ".epub":
-                text = extract_epub_text(file)
-            else:
-                continue
+if __name__ == "__main__":
+    import argparse
 
-            if not text.strip():
-                continue
-
-            chunks = chunk_text(text)
-            for chunk in chunks:
-                writer.write(chunk)
-            learned.append(file.name)
-        except Exception as e:
-            from bot_core.logger_utils import log_error
-            log_error(f"Failed to learn {file.name}: {e}")
-    writer.close()
-    return learned
-
+    parser = argparse.ArgumentParser(
+        description="Run the learning pipeline on an import directory."
+    )
+    parser.add_argument(
+        "--root", type=Path, default=Path(IMPORT_DIR),
+        help="Directory to scan and learn from"
+    )
+    args = parser.parse_args()
+    learn_all_supported_files(args.root)

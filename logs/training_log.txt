@@ -9,3 +9,4 @@
 2025-05-05 04:07:50.227 | ERROR    | bot_core.logger_utils:log_error:22 - Failed to migrate legacy vector store: [WinError 2] The system cannot find the file specified: 'memory\\vectors\\shard_1.jsonl'
 2025-05-05 06:04:24.830 | INFO     | bot_core.command_dispatcher:handle_command:86 - Learned from: Doc Savage Adventure 1949-03 Up From the Earth's Center.txt
 2025-05-05 06:27:32.735 | INFO     | bot_core.command_dispatcher:handle_command:86 - Learned from: 1000-Examples-Programming-In-Python.txt, 365 Essential Survival Skills.epub, Goldstein.pdf, Halliday & Resnick.pdf, Landau Lifshitz.pdf, Learning How To Learn Faster Become A Genius And Remember Anything.pdf, Study Guide to Accompany Fundamentals of Physics 8e, Halliday Resnick Walker.pdf
+2025-05-06 00:58:08.723 | ERROR    | bot_core.logger_utils:log_error:22 - cannot import name 'dispatcher' from 'bot_core.command_dispatcher' (D:\offline_codebot_prototype\bot_core\command_dispatcher.py)

@@ -1,64 +1,89 @@
 # bot_core/ocr_tools.py
 
+import logging
 from pathlib import Path
-from PIL import Image, ImageDraw
+from typing import List
+
 import pytesseract
-from PyPDF2 import PdfReader
-from pdf2image import convert_from_path
+import pdfplumber
+from PIL import Image
 
-from bot_core.memory import conversation_history, save_conversation
-from bot_core.logger_utils import log_error, log_info
-from bot_core.paths import LEARNING_DATA_PATH
-from bot_core.constants_config import allowed_exts
+from bot_core.constants_config import IMPORT_DIR, ALLOWED_EXTS
 
-def ocr_test():
+# Configure logger
+t_logging = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
+# File extensions supported for OCR\
+
+OCR_EXTS = {ext for ext in ALLOWED_EXTS if ext in {'.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.svg', '.gif', '.pdf'}}
+
+
+def ocr_test() -> str:
+    """
+    Verify that Tesseract OCR is available and return its version.
+    """
     try:
-        img = Image.new("RGB", (200, 50), color=(255, 255, 255))
-        draw = ImageDraw.Draw(img)
-        draw.text((10, 10), "OCR OK", fill=(0, 0, 0))
-        result = pytesseract.image_to_string(img).strip()
-        log_info(f"OCR test successful: '{result}'")
-        return f"OCR test result: '{result}'"
+        version = pytesseract.get_tesseract_version()
+        return f"Tesseract OCR version: {version}"
     except Exception as e:
-        log_error(e, "OCR test failed")
+        t_logging.error(f"OCR test failed: {e}")
         return f"OCR test failed: {e}"
 
-def ocr_scan_file(name: str):
-    target = Path(LEARNING_DATA_PATH) / name
-    if not target.exists():
-        log_error("Missing file", f"OCR scan requested on missing file: {name}")
-        return f"File not found: {name}"
+
+def ocr_scan_file(filename: str) -> str:
+    """
+    Perform OCR on a single file. Supports images and PDFs.
+
+    Args:
+        filename (str): Path to the file to scan (relative or absolute).
+
+    Returns:
+        Extracted text or an error message.
+    """
+    path = Path(filename)
+    if not path.exists():
+        path = Path(IMPORT_DIR) / filename
+    if not path.exists():
+        return f"File not found: {filename}"
+
+    ext = path.suffix.lower()
+    if ext not in OCR_EXTS:
+        return f"Unsupported OCR file type: {ext}"
+
     try:
-        if target.suffix.lower() == ".pdf":
-            images = convert_from_path(str(target))
-            text = pytesseract.image_to_string(images[0]) if images else ""
+        if ext == '.pdf':
+            text = ''
+            with pdfplumber.open(path) as pdf:
+                for page in pdf.pages:
+                    text += (page.extract_text() or '') + '\n'
         else:
-            text = pytesseract.image_to_string(Image.open(target))
-        preview = text.strip().splitlines()[0] if text.strip() else "(no text found)"
-        log_info(f"OCR preview extracted from {name}: {preview}")
-        return f"OCR preview from {name}: {preview}"
+            img = Image.open(path)
+            text = pytesseract.image_to_string(img)
+        return text
+
     except Exception as e:
-        log_error(e, f"OCR scan failed on file: {name}")
-        return f"OCR scan failed: {e}"
+        t_logging.error(f"OCR failed for {path}: {e}")
+        return f"OCR failed for {path}: {e}"
 
-def ocr_extract_all():
-    extracted = []
-    for f in Path(LEARNING_DATA_PATH).glob("*"):
-        try:
-            if f.suffix.lower() == ".pdf":
-                images = convert_from_path(str(f))
-                full_text = "".join(pytesseract.image_to_string(img) for img in images)
-            elif f.suffix.lower() in [".png", ".jpg", ".jpeg"]:
-                full_text = pytesseract.image_to_string(Image.open(f))
-            else:
-                continue
-            out_file = f.with_suffix(".ocr.txt")
-            out_file.write_text(full_text, encoding="utf-8")
-            extracted.append(f.name)
-            preview_line = full_text.strip().splitlines()[0] if full_text.strip() else "(no content extracted)"
-            log_info(f"Trained on: {f.name} | Saved as: {out_file.name} | Preview: {preview_line}")
-        except Exception as e:
-            log_error(e, f"/ocr extract failed on {f.name}")
-    log_info(f"OCR completed for {len(extracted)} files.")
-    return extracted
 
+def ocr_extract_all() -> List[str]:
+    """
+    Perform OCR on all supported files in the IMPORT_DIR directory.
+
+    Returns:
+        List of output filenames (text files) created from OCR.
+    """
+    results: List[str] = []
+    base = Path(IMPORT_DIR)
+
+    for path in base.rglob('*'):
+        if path.suffix.lower() in OCR_EXTS:
+            out_name = f"{path.stem}_ocr.txt"
+            out_path = base / out_name
+            t_logging.info(f"Extracting OCR from {path} to {out_path}")
+            text = ocr_scan_file(str(path))
+            out_path.write_text(text, encoding='utf-8')
+            results.append(out_name)
+
+    return results
