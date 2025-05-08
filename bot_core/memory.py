@@ -4,7 +4,6 @@
 Memory module: handles conversation history, exports, and hybrid vector embeddings with progress feedback.
 """
 from pathlib import Path
-from sentence_transformers import SentenceTransformer
 import json
 from datetime import datetime
 from bot_core.memory_vector_store import build_vector_store, search_memory

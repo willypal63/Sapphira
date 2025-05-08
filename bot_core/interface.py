@@ -1,5 +1,3 @@
-# bot_core/interface.py
-
 from rich.console import Console
 from rich.prompt import Prompt
 from bot_core.paths import PROJECT_PATH, LEARNING_DATA_PATH, EMBEDDING_DB_PATH
@@ -7,6 +5,7 @@ from bot_core.io import list_project_files, read_file
 from bot_core.learning import learn_all_supported_files, learn_from_text_file, learn_from_archive, reset_memory
 from bot_core.memory import build_embeddings, query_embeddings
 from bot_core.logger_utils import log_error, log_info, log_interaction
+from config import MAX_PROMPT_TOKENS, MAX_RETRIEVED_CHUNKS, MAX_CHUNK_CHARS
 import os
 
 os.environ["LLAMA_CPP_FORCE_CPU"] = "1"
@@ -15,16 +14,10 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 console = Console()
 verbose_mode = False
-MAX_PROMPT_TOKENS = 1800
-MAX_RETRIEVED_CHUNKS = 5
-MAX_CHUNK_CHARS = 800
 
 def command_loop(gen):
     global verbose_mode
-    # Removed startup banner for clean output
     
-    
-
     log_info("Assistant started")
     context = ""
 
@@ -64,7 +57,7 @@ def command_loop(gen):
             elif user_input == "/build_index":
                 build_embeddings()
             else:
-                # log_info removed for quiet output
+                
                 try:
                     raw_chunks = query_embeddings(user_input)
                     filtered_chunks = [chunk[:MAX_CHUNK_CHARS] for chunk in raw_chunks[:MAX_RETRIEVED_CHUNKS]]

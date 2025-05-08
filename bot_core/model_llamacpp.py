@@ -1,10 +1,11 @@
 # bot_core/model_llamacpp.py
 
-import json
 import re
+import json
 from pathlib import Path
 from llama_cpp import Llama
 from bot_core.memory import conversation_history, save_conversation
+from config import MODEL_PATH, GPU_LAYERS, N_THREADS, CTX_SIZE, N_BATCH, TEMPERATURE, TOP_P, REPEAT_PENALTY, N_PREDICT
 
 # Load Sapphira's personality profile
 def load_profile() -> dict:
@@ -16,10 +17,6 @@ def load_profile() -> dict:
 sapphira = load_profile()
 
 # Model settings
-MODEL_PATH = Path("D:/Models/CodeLlama-13B/codellama-13b.Q4_K_M.gguf")
-N_CTX = 16384
-N_GPU_LAYERS = 0
-N_THREADS = 4
 
 _llm: Llama | None = None
 
@@ -31,11 +28,15 @@ def init_llm(config: dict | None = None) -> callable:
     if _llm is None:
         _llm = Llama(
             model_path=str(MODEL_PATH),
-            n_ctx=N_CTX,
-            n_gpu_layers=N_GPU_LAYERS,
+            n_ctx=CTX_SIZE,
+            n_batch=N_BATCH,
+            temperature=TEMPERATURE,
+            top_p=TOP_P,
+            repeat_penalty=REPEAT_PENALTY,
+            n_gpu_layers=GPU_LAYERS,
             n_threads=N_THREADS,
             verbose=False
-        )
+    )
         # Warm up model to avoid first-call lag
         _llm("Hello", max_tokens=1, temperature=0.0)
     return generate_response
@@ -61,11 +62,9 @@ def generate_response(prompt: str, verbose: bool = False) -> str:
     if _llm is None:
         raise RuntimeError("LLM not initialized; call init_llm() first.")
 
-    # Hint for code requests
     if any(tok in prompt.lower() for tok in ("def ", "import ", "class ")):
         prompt += "\n(Please reply in natural language unless I request code.)"
 
-    # Build system + user prompt
     system_prompt = (
         f"SYSTEM: You are Sapphira, a {sapphira.get('age')}-year-old AI.\n"
         f"Personality: {sapphira.get('personality')}\n"
@@ -76,22 +75,18 @@ def generate_response(prompt: str, verbose: bool = False) -> str:
     user_block = f"USER: {prompt}\n"
     full_prompt = system_prompt + user_block
 
-    # Call the model with proper stop tokens
     result = _llm(
         full_prompt,
-        max_tokens=256,
-        temperature=0.7,
-        stop=["\nUSER:", "\nSAPPHIRA:"]
+        max_tokens=N_PREDICT,
+        temperature=TEMPERATURE,
+        stop=["USER:", "\nSAPPHIRA:"]
     )
     raw = result["choices"][0]["text"].strip()
 
-    # Post-process the reply
     cleaned = clean_repetition(raw)
     final = strip_prompt_formatting(cleaned)
 
-    # Save to history
     conversation_history.append({"role": "assistant", "content": final})
     save_conversation(conversation_history)
 
-    # Return plain LLM output—no hardcoded prefixes
     return final

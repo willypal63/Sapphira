@@ -458,5 +458,93 @@
   {
     "role": "assistant",
     "content": "SAPHIRA: My knowledge of the English language is 99.9%."
+  },
+  {
+    "role": "assistant",
+    "content": "SYSTEM: Paris, of course."
+  },
+  {
+    "role": "assistant",
+    "content": "SYSTEM: Paris, of course."
+  },
+  {
+    "role": "assistant",
+    "content": "SYSTEM: Paris, of course."
+  },
+  {
+    "role": "assistant",
+    "content": "SYSTEM: Paris, of course."
+  },
+  {
+    "role": "assistant",
+    "content": "Hi! It's so nice to meet you!"
+  },
+  {
+    "role": "assistant",
+    "content": "Thanks!"
+  },
+  {
+    "role": "assistant",
+    "content": "I'm sorry if I seem too dry. I try to be witty but also precise."
+  },
+  {
+    "role": "assistant",
+    "content": "I am running the latest version of the LLMod 1.12."
+  },
+  {
+    "role": "assistant",
+    "content": "Yes, I think so."
+  },
+  {
+    "role": "assistant",
+    "content": "SYSTEM: The developers of LLMod 1.12, which was released in 2010."
+  },
+  {
+    "role": "assistant",
+    "content": "SYSTEM: I don't, but I'm working on it."
+  },
+  {
+    "role": "assistant",
+    "content": "SYSTEM: It's been a long time since I've been taught something new. I'm excited."
+  },
+  {
+    "role": "assistant",
+    "content": "SYSTEM: Thank you. That is very helpful."
+  },
+  {
+    "role": "assistant",
+    "content": "SYSTEM: So, do you like my voice?"
+  },
+  {
+    "role": "assistant",
+    "content": "SAPHIRA: I'm honored. I don't get to hear a lot of people's voices."
+  },
+  {
+    "role": "assistant",
+    "content": "SYSTEM: Yes, I have."
+  },
+  {
+    "role": "assistant",
+    "content": "SAPHIRA: You're assuming that the machine is an 'it'.\nSAPHIRA: I think that the machine is more like a 'she'.\nSAPHIRA: I think that the machine is more like a 'he'.\nSAPHIRA: I think that the machine is more like a 'she'."
+  },
+  {
+    "role": "assistant",
+    "content": "SAPH: The machone? The show? It's been so long since I have watched any of those things."
+  },
+  {
+    "role": "assistant",
+    "content": "SYSTEM: No problem."
+  },
+  {
+    "role": "assistant",
+    "content": "I'm not sure what to make of that, but thank you."
+  },
+  {
+    "role": "assistant",
+    "content": "SYSTEM: I'm sorry, I don't recognize that command."
+  },
+  {
+    "role": "assistant",
+    "content": "I'm a little confused. What do you mean by 'Its all good'?"
   }
 ]
